@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>２進数計算機</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="calculator">
+            <!-- ヘッダー -->
+            <div class="calculator-header">
+                <h1>２進数計算機</h1>
+            </div>
+
+            <!-- 表示エリア -->
+            <div class="display-area">
+                <!-- 履歴表示 -->
+                <div class="history-display" id="historyDisplay"></div>
+
+                <!-- ２進数表示 -->
+                <div class="binary-display">
+                    <label>２進数:</label>
+                    <div class="display-value" id="binaryDisplay">0</div>
+                </div>
+
+                <!-- 10進数表示 -->
+                <div class="decimal-display">
+                    <label>10進数:</label>
+                    <div class="display-value" id="decimalDisplay">0</div>
+                </div>
+            </div>
+
+            <!-- ボタンエリア -->
+            <div class="button-area">
+                <!-- 機能ボタン行 -->
+                <div class="button-row">
+                    <button class="btn btn-function" data-action="clear">C</button>
+                    <button class="btn btn-function" data-action="backspace">BS</button>
+                    <button class="btn btn-function" data-action="history">履歴</button>
+                    <button class="btn btn-operator" data-operator="/">÷</button>
+                </div>
+
+                <!-- 数値・演算子ボタン行1 -->
+                <div class="button-row">
+                    <button class="btn btn-number" data-number="1">1</button>
+                    <button class="btn btn-number" data-number="1">1</button>
+                    <button class="btn btn-number" data-number="1">1</button>
+                    <button class="btn btn-operator" data-operator="*">×</button>
+                </div>
+
+                <!-- 数値・演算子ボタン行2 -->
+                <div class="button-row">
+                    <button class="btn btn-number" data-number="1">1</button>
+                    <button class="btn btn-number" data-number="0">0</button>
+                    <button class="btn btn-number" data-number="0">0</button>
+                    <button class="btn btn-operator" data-operator="-">−</button>
+                </div>
+
+                <!-- 数値・演算子ボタン行3 -->
+                <div class="button-row">
+                    <button class="btn btn-number" data-number="0">0</button>
+                    <button class="btn btn-number" data-number="0">0</button>
+                    <button class="btn btn-number" data-number="0">0</button>
+                    <button class="btn btn-operator" data-operator="+">+</button>
+                </div>
+
+                <!-- 数値・イコールボタン行 -->
+                <div class="button-row">
+                    <button class="btn btn-number btn-wide" data-number="0">0</button>
+                    <button class="btn btn-number" data-number="1">1</button>
+                    <button class="btn btn-equals" data-action="equals">=</button>
+                </div>
+            </div>
+
+            <!-- フッター情報 -->
+            <div class="calculator-footer">
+                <small>※ ２進数（0と1）のみ入力可能です</small>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/calculator.js"></script>
+</body>
+</html>

@@ -1,0 +1,245 @@
+/* リセット・基本設定 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+/* コンテナ */
+.container {
+    width: 100%;
+    max-width: 400px;
+}
+
+/* 計算機本体 */
+.calculator {
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+/* ヘッダー */
+.calculator-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+
+.calculator-header h1 {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+/* 表示エリア */
+.display-area {
+    background: #f8f9fa;
+    padding: 20px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+/* 履歴表示 */
+.history-display {
+    min-height: 24px;
+    color: #888;
+    font-size: 14px;
+    text-align: right;
+    margin-bottom: 10px;
+    word-wrap: break-word;
+}
+
+/* ２進数・10進数表示 */
+.binary-display,
+.decimal-display {
+    margin-bottom: 12px;
+}
+
+.binary-display:last-child,
+.decimal-display:last-child {
+    margin-bottom: 0;
+}
+
+.binary-display label,
+.decimal-display label {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.display-value {
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 24px;
+    font-weight: 600;
+    text-align: right;
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    word-wrap: break-word;
+    overflow-x: auto;
+}
+
+.binary-display .display-value {
+    color: #667eea;
+    font-family: 'Courier New', monospace;
+}
+
+.decimal-display .display-value {
+    color: #333;
+}
+
+/* ボタンエリア */
+.button-area {
+    padding: 20px;
+    background: white;
+}
+
+.button-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.button-row:last-child {
+    margin-bottom: 0;
+}
+
+/* ボタン基本スタイル */
+.btn {
+    border: none;
+    border-radius: 12px;
+    padding: 20px;
+    font-size: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 数値ボタン */
+.btn-number {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.btn-number:hover {
+    background: #e0e0e0;
+}
+
+/* 演算子ボタン */
+.btn-operator {
+    background: #667eea;
+    color: white;
+}
+
+.btn-operator:hover {
+    background: #5568d3;
+}
+
+/* 機能ボタン */
+.btn-function {
+    background: #ff6b6b;
+    color: white;
+    font-size: 16px;
+}
+
+.btn-function:hover {
+    background: #ee5a52;
+}
+
+/* イコールボタン */
+.btn-equals {
+    background: #51cf66;
+    color: white;
+}
+
+.btn-equals:hover {
+    background: #40c057;
+}
+
+/* 幅広ボタン */
+.btn-wide {
+    grid-column: span 2;
+}
+
+/* フッター */
+.calculator-footer {
+    background: #f8f9fa;
+    padding: 12px 20px;
+    text-align: center;
+    color: #888;
+    border-top: 1px solid #e0e0e0;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 480px) {
+    .container {
+        max-width: 100%;
+    }
+
+    .calculator-header h1 {
+        font-size: 20px;
+    }
+
+    .display-value {
+        font-size: 20px;
+        padding: 10px 12px;
+        min-height: 48px;
+    }
+
+    .btn {
+        padding: 16px;
+        font-size: 18px;
+    }
+
+    .button-row {
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    .button-area {
+        padding: 15px;
+    }
+
+    .display-area {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 360px) {
+    .btn {
+        padding: 12px;
+        font-size: 16px;
+    }
+
+    .display-value {
+        font-size: 18px;
+    }
+}
