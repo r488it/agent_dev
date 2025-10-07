@@ -1,12 +1,14 @@
 /**
  * UIController - ２進数計算機のUIコントローラー
  * PHX-106: UI操作・イベント処理実装
+ * PHX-108: CalculatorEngineとの統合
  *
  * 機能:
  * - ボタンクリックイベントハンドリング
  * - 表示エリアの動的更新処理
  * - 入力値の検証とエラーハンドリング
  * - クリア・リセット機能
+ * - CalculatorEngineとの連携
  */
 
 class UIController {
@@ -17,13 +19,11 @@ class UIController {
         this.historyDisplay = document.getElementById('historyDisplay');
         this.errorDisplay = document.getElementById('errorDisplay');
 
-        // 状態管理
-        this.currentInput = '0';
-        this.operator = null;
-        this.previousValue = null;
-        this.history = [];
-        this.isNewInput = true;
-        this.hasError = false;
+        // 計算エンジンの初期化
+        this.engine = new CalculatorEngine();
+
+        // 履歴表示の状態
+        this.isHistoryVisible = false;
 
         // 初期化
         this.init();
@@ -35,7 +35,7 @@ class UIController {
     init() {
         this.attachEventListeners();
         this.updateDisplay();
-        console.log('UIController初期化完了');
+        console.log('UIController初期化完了 - CalculatorEngine統合版');
     }
 
     /**
@@ -88,49 +88,20 @@ class UIController {
      * @param {string} number - 入力された数値（'0'または'1'）
      */
     handleNumberInput(number) {
-        // エラー状態の場合はクリア
-        if (this.hasError) {
-            this.clearError();
-            this.clear();
-        }
+        // 計算エンジンに数値入力を委譲
+        const state = this.engine.inputDigit(number);
 
-        // ２進数として有効な入力値の検証
-        if (!this.validateBinaryInput(number)) {
-            this.showError('エラー: ２進数は0と1のみ入力可能です');
-            return;
-        }
-
-        // 新規入力の場合は現在値をクリア
-        if (this.isNewInput) {
-            this.currentInput = '';
-            this.isNewInput = false;
-        }
-
-        // 先頭の0を除去（'0'のみの場合を除く）
-        if (this.currentInput === '0') {
-            this.currentInput = '';
-        }
-
-        // 入力値の追加
-        this.currentInput += number;
-
-        // 空の場合は'0'に設定
-        if (this.currentInput === '') {
-            this.currentInput = '0';
-        }
-
-        // オーバーフロー検証（32ビット制限）
-        if (!this.validateBinaryLength(this.currentInput)) {
-            this.showError('エラー: 入力値が大きすぎます（32ビット制限）');
-            this.currentInput = this.currentInput.slice(0, -1);
-            if (this.currentInput === '') {
-                this.currentInput = '0';
-            }
-            return;
-        }
-
+        // 表示を更新
         this.updateDisplay();
-        console.log('数値入力:', number, '現在値:', this.currentInput);
+
+        // エラー処理
+        if (state.hasError) {
+            this.showError(state.errorMessage);
+        } else {
+            this.clearError();
+        }
+
+        console.log('数値入力:', number, '現在値:', state.currentValue);
     }
 
     /**
@@ -138,23 +109,17 @@ class UIController {
      * @param {string} operator - 演算子（+, -, *, /）
      */
     handleOperatorInput(operator) {
-        // エラー状態の場合は処理しない
-        if (this.hasError) {
-            return;
-        }
+        // 計算エンジンに演算子入力を委譲
+        const state = this.engine.inputOperator(operator);
 
-        // 前の計算を実行
-        if (this.operator !== null && !this.isNewInput) {
-            this.handleEquals();
-        }
-
-        // 演算子と前の値を保存
-        this.previousValue = this.currentInput;
-        this.operator = operator;
-        this.isNewInput = true;
-
-        // 履歴表示を更新
+        // 表示を更新
+        this.updateDisplay();
         this.updateHistoryDisplay();
+
+        // エラー処理
+        if (state.hasError) {
+            this.showError(state.errorMessage);
+        }
 
         console.log('演算子入力:', operator);
     }
@@ -163,70 +128,21 @@ class UIController {
      * イコールボタン処理
      */
     handleEquals() {
-        // エラー状態または演算子が未設定の場合は処理しない
-        if (this.hasError || this.operator === null || this.previousValue === null) {
-            return;
+        // 計算エンジンに計算実行を委譲
+        const state = this.engine.calculate();
+
+        // 表示を更新
+        this.updateDisplay();
+        this.updateHistoryDisplay();
+
+        // エラー処理
+        if (state.hasError) {
+            this.showError(state.errorMessage);
+        } else {
+            this.clearError();
         }
 
-        try {
-            // ２進数を10進数に変換
-            const num1 = parseInt(this.previousValue, 2);
-            const num2 = parseInt(this.currentInput, 2);
-            let result;
-
-            // 計算実行
-            switch (this.operator) {
-                case '+':
-                    result = num1 + num2;
-                    break;
-                case '-':
-                    result = num1 - num2;
-                    break;
-                case '*':
-                    result = num1 * num2;
-                    break;
-                case '/':
-                    if (num2 === 0) {
-                        this.showError('エラー: ゼロで除算できません');
-                        return;
-                    }
-                    result = Math.floor(num1 / num2); // 整数除算
-                    break;
-                default:
-                    return;
-            }
-
-            // 結果が負の場合のエラーハンドリング
-            if (result < 0) {
-                this.showError('エラー: 負の数は扱えません');
-                return;
-            }
-
-            // 結果が32ビットを超える場合のエラーハンドリング
-            if (result > 0xFFFFFFFF) {
-                this.showError('エラー: 計算結果が大きすぎます（32ビット制限）');
-                return;
-            }
-
-            // 計算履歴を保存
-            const calculation = `${this.previousValue} ${this.operator} ${this.currentInput} = ${result.toString(2)}`;
-            this.addToHistory(calculation);
-
-            // 結果を２進数に変換して表示
-            this.currentInput = result.toString(2);
-            this.operator = null;
-            this.previousValue = null;
-            this.isNewInput = true;
-
-            this.updateDisplay();
-            this.updateHistoryDisplay('');
-
-            console.log('計算実行:', calculation);
-
-        } catch (error) {
-            this.showError('エラー: 計算中にエラーが発生しました');
-            console.error('計算エラー:', error);
-        }
+        console.log('計算実行完了');
     }
 
     /**
@@ -254,60 +170,57 @@ class UIController {
      * クリア処理
      */
     clear() {
-        this.currentInput = '0';
-        this.operator = null;
-        this.previousValue = null;
-        this.isNewInput = true;
-        this.clearError();
+        // 計算エンジンをクリア
+        this.engine.clear();
+
+        // 表示を更新
         this.updateDisplay();
-        this.updateHistoryDisplay('');
+        this.updateHistoryDisplay();
+        this.clearError();
     }
 
     /**
      * バックスペース処理
      */
     backspace() {
-        // エラー状態の場合はクリア
-        if (this.hasError) {
+        // 計算エンジンにバックスペース処理を委譲
+        const state = this.engine.backspace();
+
+        // 表示を更新
+        this.updateDisplay();
+
+        // エラー処理
+        if (state.hasError) {
             this.clearError();
             this.clear();
-            return;
         }
-
-        // 新規入力状態または'0'のみの場合は処理しない
-        if (this.isNewInput || this.currentInput === '0') {
-            return;
-        }
-
-        // 最後の文字を削除
-        this.currentInput = this.currentInput.slice(0, -1);
-
-        // 空になった場合は'0'に設定
-        if (this.currentInput === '') {
-            this.currentInput = '0';
-        }
-
-        this.updateDisplay();
     }
 
     /**
      * 履歴表示切替
      */
     toggleHistory() {
-        if (this.history.length === 0) {
+        const history = this.engine.getHistory(5);
+
+        if (history.length === 0) {
             this.historyDisplay.textContent = '履歴なし';
             setTimeout(() => {
-                this.historyDisplay.textContent = '';
+                if (!this.isHistoryVisible) {
+                    this.updateHistoryDisplay();
+                }
             }, 2000);
             return;
         }
 
-        // 履歴を表示
-        const historyText = this.history.slice(-5).reverse().join('\n');
-        if (this.historyDisplay.textContent === '') {
-            this.historyDisplay.textContent = historyText;
+        // 履歴表示切替
+        this.isHistoryVisible = !this.isHistoryVisible;
+
+        if (this.isHistoryVisible) {
+            // 履歴を表示
+            this.historyDisplay.textContent = history.join('\n');
         } else {
-            this.historyDisplay.textContent = '';
+            // 現在の計算式を表示
+            this.updateHistoryDisplay();
         }
     }
 
@@ -349,42 +262,37 @@ class UIController {
      * 表示更新処理
      */
     updateDisplay() {
+        const state = this.engine.getState();
+
         // ２進数表示
-        this.binaryDisplay.textContent = this.currentInput;
+        this.binaryDisplay.textContent = state.currentValue;
 
         // 10進数表示
-        const decimalValue = parseInt(this.currentInput, 2);
-        this.decimalDisplay.textContent = decimalValue;
+        this.decimalDisplay.textContent = state.decimalValue;
     }
 
     /**
      * 履歴表示更新処理
-     * @param {string} text - 表示するテキスト
      */
-    updateHistoryDisplay(text = null) {
-        if (text === null && this.operator && this.previousValue) {
+    updateHistoryDisplay() {
+        // 履歴が表示されている場合は更新しない
+        if (this.isHistoryVisible) {
+            return;
+        }
+
+        const state = this.engine.getState();
+
+        if (state.operator && state.previousValue) {
             // 計算中の式を表示
             const operatorSymbol = {
                 '+': '+',
                 '-': '−',
                 '*': '×',
                 '/': '÷'
-            }[this.operator] || this.operator;
-            this.historyDisplay.textContent = `${this.previousValue} ${operatorSymbol}`;
-        } else if (text !== undefined) {
-            this.historyDisplay.textContent = text;
-        }
-    }
-
-    /**
-     * 履歴追加処理
-     * @param {string} calculation - 計算式
-     */
-    addToHistory(calculation) {
-        this.history.push(calculation);
-        // 履歴は最大100件まで保持
-        if (this.history.length > 100) {
-            this.history.shift();
+            }[state.operator] || state.operator;
+            this.historyDisplay.textContent = `${state.previousValue} ${operatorSymbol}`;
+        } else {
+            this.historyDisplay.textContent = '';
         }
     }
 
@@ -393,7 +301,6 @@ class UIController {
      * @param {string} message - エラーメッセージ
      */
     showError(message) {
-        this.hasError = true;
         this.errorDisplay.textContent = message;
         this.errorDisplay.style.display = 'block';
         console.error(message);
@@ -403,37 +310,13 @@ class UIController {
      * エラークリア処理
      */
     clearError() {
-        this.hasError = false;
         this.errorDisplay.textContent = '';
         this.errorDisplay.style.display = 'none';
-    }
-
-    /**
-     * ２進数入力値の検証
-     * @param {string} value - 検証する値
-     * @returns {boolean} 有効な場合true
-     */
-    validateBinaryInput(value) {
-        return value === '0' || value === '1';
-    }
-
-    /**
-     * ２進数の長さ検証（32ビット制限）
-     * @param {string} binary - ２進数文字列
-     * @returns {boolean} 有効な場合true
-     */
-    validateBinaryLength(binary) {
-        // 32ビット（2^32 - 1 = 4294967295）を超えないことを確認
-        if (binary.length > 32) {
-            return false;
-        }
-        const value = parseInt(binary, 2);
-        return value <= 0xFFFFFFFF;
     }
 }
 
 // DOMContentLoaded後に初期化
 document.addEventListener('DOMContentLoaded', function() {
-    // 既存のcalculator.jsとの競合を避けるため、UIControllerのみ初期化
+    // UIControllerとCalculatorEngineの統合版を初期化
     window.uiController = new UIController();
 });
